@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitura Guiada Inglês → Português - Tradutor de Frases</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; }
+        .reader {
+            border-radius: 1.25rem; background: #212529; color: #f8f9fa;
+            padding: 2.5rem 1.5rem; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,.15);
+        }
+        .reader .en-text { font-size: 2.1rem; font-weight: 600; color: #6ea8fe; line-height: 1.35; }
+        .reader .pt-text { font-size: 1.7rem; font-weight: 600; color: #20c997; margin-top: .75rem; line-height: 1.3; }
+        .reader .hint { color: #adb5bd; font-size: .9rem; margin-top: 1rem; }
+        .checklist { max-height: 42vh; overflow-y: auto; background: #fff; border-radius: .5rem; }
+        .lrow { display: flex; gap: .5rem; align-items: center; padding: .18rem .6rem;
+                cursor: pointer; border-bottom: 1px solid #f1f3f5; font-size: .85rem; }
+        .lrow:hover { background: #f8f9fa; }
+        .lrow .tick { visibility: hidden; color: #198754; font-weight: 700; width: 1.2em; flex-shrink: 0; }
+        .lrow.read { color: #198754; }
+        .lrow.read .tick { visibility: visible; }
+        .lrow.current { background: #fff3cd; }
+        .lrow .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kbd { display: inline-block; padding: .1rem .4rem; border: 1px solid #ccc; border-bottom-width: 2px;
+               border-radius: .3rem; background: #fff; font-size: .75rem; font-family: monospace; }
+    </style>
+</head>
+<body>
+<div class="container py-4" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="mb-0">🔊 Leitura Guiada Inglês → Português</h3>
+        <div class="d-flex gap-2">
+            <a href="treinar.html" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-mortarboard"></i> Treinar inglês
+            </a>
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-house"></i> Página inicial
+            </a>
+        </div>
+    </div>
+
+    <!-- Progresso -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center mb-1 small text-muted flex-wrap gap-2">
+                <span>Lidos <strong id="readIndex">0</strong> de <strong id="readTotal">0</strong></span>
+                <span id="readPct">0%</span>
+                <button id="resetBtn" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reiniciar
+                </button>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div id="readProgress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leitor -->
+    <div class="reader mb-3">
+        <div id="dEn" class="en-text">Carregando…</div>
+        <div id="dPt" class="pt-text"></div>
+        <div class="hint" id="dHint">—</div>
+    </div>
+
+    <!-- Controles -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <button id="rPlay" class="btn btn-success flex-fill">
+            <i class="bi bi-play-fill"></i> Iniciar leitura
+        </button>
+        <button id="rPrev" class="btn btn-outline-secondary flex-fill">
+            <i class="bi bi-arrow-left"></i> Anterior
+        </button>
+        <button id="rNext" class="btn btn-outline-secondary flex-fill">
+            Próxima <i class="bi bi-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- Opções -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="tglEn" checked>
+                        <label class="form-check-label" for="tglEn">Ler em inglês (áudio nativo US)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="tglPt" checked>
+                        <label class="form-check-label" for="tglPt">Ler em português (voz do sistema)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="tglDirect" checked>
+                        <label class="form-check-label" for="tglDirect">Seguir direto (não pausar ao pular)</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-0 small fw-bold">Velocidade</label>
+                    <input type="range" class="form-range" id="speechRate" min="0.5" max="1.5" step="0.1" value="0.95">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-0 small fw-bold">Volume</label>
+                    <input type="range" class="form-range" id="speechVolume" min="0" max="1" step="0.1" value="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-0 small fw-bold">Pausa entre itens (s)</label>
+                    <input type="number" class="form-control form-control-sm" id="gapSecs" min="0" max="10" step="0.5" value="1">
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="small text-muted">
+                Atalhos: <span class="kbd">Espaço</span> iniciar/pausar ·
+                <span class="kbd">←</span>/<span class="kbd">→</span> anterior/próxima
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-check2-square"></i> Acompanhamento <small class="text-muted">(✓ = já lidos, clique para pular)</small></h5>
+        </div>
+        <div class="card-body p-0">
+            <div id="checkList" class="checklist p-1">
+                <div class="text-center text-muted py-3">Carregando…</div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center text-muted small mt-3 mb-0">
+        Lendo <code>projetoIngles/frases.txt</code> · Inglês com áudio nativo US, português com a voz do sistema (Maria).
+    </p>
+</div>
+
+<script src="js/leitura-en.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinar com Flashcards - Tradutor de Frases</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; }
+        .flashcard {
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+            user-select: none;
+        }
+        .flashcard:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(0,0,0,.12); }
+        .flashcard .en-text { font-size: 2rem; font-weight: 600; color: #0d6efd; line-height: 1.3; }
+        .flashcard .pt-text { font-size: 2rem; font-weight: 600; color: #198754; line-height: 1.3; }
+        .flashcard .divider { width: 80px; border-top: 2px solid #e9ecef; margin: 1.25rem 0; }
+        .flashcard .hint { color: #adb5bd; font-size: .9rem; margin-top: 1rem; }
+        .flashcard .badge-flag { font-size: .8rem; letter-spacing: .5px; }
+        .kbd { display: inline-block; padding: .1rem .4rem; border: 1px solid #ccc; border-bottom-width: 2px;
+               border-radius: .3rem; background: #fff; font-size: .75rem; font-family: monospace; }
+    </style>
+</head>
+<body>
+<div class="container py-4" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="mb-0">🎧 Treinar com Flashcards</h3>
+        <div class="d-flex gap-2">
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-house"></i> Página inicial
+            </a>
+        </div>
+    </div>
+
+    <!-- Barra de progresso / status -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center mb-1 small text-muted">
+                <span>Card <strong id="cardIndex">0</strong> de <strong id="cardTotal">0</strong></span>
+                <span id="deckInfo">—</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div id="trainProgress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- O flashcard -->
+    <div id="flashcard" class="flashcard mb-3">
+        <span class="badge badge-flag bg-primary mb-3" id="frontBadge">🇬🇧 INGLÊS</span>
+        <div id="cardText" class="en-text">Carregando…</div>
+        <div id="cardBack" class="w-100" style="display:none;">
+            <div class="divider mx-auto"></div>
+            <span class="badge badge-flag bg-success mb-3">🇧🇷 PORTUGUÊS</span>
+            <div id="cardTranslation" class="pt-text"></div>
+        </div>
+        <div class="hint" id="cardHint">Clique no card para ver a tradução</div>
+    </div>
+
+    <!-- Ações principais -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <button id="playEnBtn" class="btn btn-outline-primary flex-fill">
+            <i class="bi bi-volume-up-fill"></i> Ouvir inglês
+        </button>
+        <button id="flipBtn" class="btn btn-primary flex-fill">
+            <i class="bi bi-arrow-repeat"></i> Mostrar tradução
+        </button>
+        <button id="playPtBtn" class="btn btn-outline-success flex-fill">
+            <i class="bi bi-volume-up-fill"></i> Ouvir português
+        </button>
+    </div>
+
+    <!-- Navegação -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <button id="prevBtn" class="btn btn-outline-secondary flex-fill">
+            <i class="bi bi-arrow-left"></i> Anterior
+        </button>
+        <button id="shuffleBtn" class="btn btn-outline-secondary flex-fill">
+            <i class="bi bi-shuffle"></i> Embaralhar
+        </button>
+        <button id="nextBtn" class="btn btn-outline-secondary flex-fill">
+            Próxima <i class="bi bi-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- Opções -->
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="autoPlay" checked>
+                        <label class="form-check-label" for="autoPlay">Reproduzir áudio automaticamente</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="autoPlayPt" checked>
+                        <label class="form-check-label" for="autoPlayPt">Falar a tradução ao virar</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label mb-0 small fw-bold">Velocidade da fala</label>
+                    <input type="range" class="form-range" id="speechRate" min="0.5" max="1.5" step="0.1" value="0.95">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-0 small fw-bold">Volume</label>
+                    <input type="range" class="form-range" id="speechVolume" min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="small text-muted">
+                Atalhos: <span class="kbd">Espaço</span> virar ·
+                <span class="kbd">←</span>/<span class="kbd">→</span> navegar ·
+                <span class="kbd">1</span> inglês · <span class="kbd">2</span> português
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center text-muted small mt-3 mb-0">
+        Total de frases no projeto: 1982 ·
+        Áudio em inglês com voz nativa dos EUA e português com voz brasileira.
+    </p>
+</div>
+
+<script src="js/treinar.js"></script>
+</body>
+</html>
